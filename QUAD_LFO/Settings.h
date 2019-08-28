@@ -5,37 +5,35 @@
 // To use a common pin for syncing both LFOs, define SYNC_COMMON (uncomment the #define)
 // The common pin/trigger are taken from SYNC1
 
-#define SYNC
-#if defined(SYNC)
-//#define SYNC_COMMON
-const byte SYNC1_PIN =            6;
-const byte SYNC1_TRIGGER =        HIGH;
-const byte SYNC2_PIN =            4;
-const byte SYNC2_TRIGGER =        HIGH;
-const byte SYNC3_PIN =            6;
-const byte SYNC3_TRIGGER =        HIGH;
-const byte SYNC4_PIN =            4;
-const byte SYNC4_TRIGGER =        HIGH;
-#endif
-
-// Uncomment this to initialize and update a user-supplied display
+// Uncomment the following line to support a user-supplied display
 //#define DISPLAY
 
-// KNOBS (analog pins)
+// FREQUENCY (analog pins)
 
-const byte FREQ1_KNOB_PIN =         0;
-const byte FREQ2_KNOB_PIN =         1;
-const byte FREQ3_KNOB_PIN =         2;
-const byte FREQ4_KNOB_PIN =         3;
+const byte FREQ1_PIN =            0;
+const byte FREQ2_PIN =            1;
+const byte FREQ3_PIN =            2;
+const byte FREQ4_PIN =            3;
 
-// SWITCHES (digital pins)
+// WAVE SWITCHES (digital pins)
 
-const byte WAVE1_SWITCH_PIN =      10;
-const byte WAVE2_SWITCH_PIN =      12;
-const byte WAVE3_SWITCH_PIN =      12;
-const byte WAVE4_SWITCH_PIN =      12;
+const byte WAVE1_PIN =            2;
+const byte WAVE2_PIN =            4;
+const byte WAVE3_PIN =            7;
+const byte WAVE4_PIN =            8;
 
-// LFO SETTINGS
+// LFO SYNC (Optional) -- Comment #define to remove SYNC feature
+
+#define SYNC
+#if defined(SYNC)
+const byte SYNC1_PIN =            9;
+const byte SYNC2_PIN =           10;
+const byte SYNC3_PIN =           12;
+const byte SYNC4_PIN =           13;
+const byte SYNC_TRIGGER =                 HIGH;
+#endif
+
+// LFO FREQUENCY SETTINGS
 const double LFO1_FREQ_MIN =      0.1;
 const double LFO1_FREQ_MAX =      100;
 
