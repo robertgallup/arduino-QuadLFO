@@ -2,17 +2,17 @@
 //
 //  Quad LFO
 //
-//  LFO INPUTS (for each LFO):
+//  OUTPUT:
+//  Pin 11 (LFO1), 3 (LFO2), 6 (LFO3), and 5 (LFO4).
+//  It is important to add low-pass filters to these
+//  pins to smooth out the resulting PWM waveform
 //
-//  A momentary switch to increment through wave tables
-//  A potentiometer to control LFO frequency
-//  A digital input to re-trigger the LFO
+//  INPUT:
+//  Potentiometers to control LFO frequency
+//  Momentary switches to increment through wave tables
+//  Digital inputs (triggers) to restart LFO
 //
-//  The LFOs output to pins 11 (LFO1), 3 (LFO2), 6 (LFO3), and 5 (LFO4).
-//  Since the output is PWM, it's important to add low-pass filters to these
-//  pins to smooth out the resulting waveform
-//
-//  See accompanying Fritzing documents for circuit information.
+//  See the PIN MAP, below, for specific pin assignments
 //
 //  ==============================================================
 //  PIN MAP:
@@ -29,8 +29,8 @@
 //
 //  Digital
 //
-//  D0:   N/A           (SERIAL TX)
-//  D1:   N/A           (SERIAL RX)
+//  D0:   NC            (SERIAL TX)
+//  D1:   NC            (SERIAL RX)
 //  D2:   LFO 1 WAVE    (SWITCH)
 //  D3:   LFO 2 OUTPUT  (PWM~)
 //  D4:   LFO 2 WAVE    (SWITCH)
@@ -70,27 +70,28 @@
 //  THE SOFTWARE.
 //
 
-// Macros for clearing and setting bits
+// Macros for setting and clearing bits
 #define   setBit(addr, bit) (_SFR_BYTE(addr) |=  _BV(bit))
 #define clearBit(addr, bit) (_SFR_BYTE(addr) &= ~_BV(bit))
-
-// Used in calculating frequency tuning word
-// Create constant to to only calculate 2^32 once
-const unsigned long long POW2TO32 = pow(2, 32);
 
 // Number of oscillators
 const byte NUM_LFO = 4;
 
+// Constant used in calculating frequency tuning word
+const unsigned long long POW2TO32 = pow(2, 32);
+
 //------------------------------------------
-// PWM Pins -- WARNING: Do not change these!
+//  PWM Pins and Registers
+//  WARNING: DO NOT CHANGE THESE!
 const byte LFO_PIN[] = {11, 3, 6, 5};
+volatile byte *const PWM_REG[] = {&OCR2A, &OCR2B, &OCR0A, &OCR0B};
 //------------------------------------------
 
 // Control Framework
 #include "src/CS_Switch.h"
 #include "src/CS_Pot.h"
 
-// Waves
+// Wave tables
 #include "wave/noise256.h"
 #include "wave/ramp256.h"
 #include "wave/saw256.h"
@@ -114,11 +115,11 @@ const byte *waveTable[] = {sine256, ramp256, saw256, tri256, pulse8, pulse16, pu
 Display displaySurface;
 #endif
 
-// Oscillator frequency controls and wave inputs
-CS_Pot    freqCtrl[] = {CS_Pot    (FREQ1_PIN, 3), CS_Pot    (FREQ2_PIN, 3), CS_Pot    (FREQ3_PIN, 3), CS_Pot    (FREQ4_PIN, 3)};
-CS_Switch waveCtrl[] = {CS_Switch (WAVE1_PIN),    CS_Switch (WAVE2_PIN),    CS_Switch (WAVE3_PIN),    CS_Switch (WAVE4_PIN)   };
+// Oscillator frequency controls and wave select inputs
+CS_Pot    freqCtrl[] = {CS_Pot    (FREQ1_PIN, POT_RESPONSE), CS_Pot    (FREQ2_PIN, POT_RESPONSE), CS_Pot    (FREQ3_PIN, POT_RESPONSE), CS_Pot    (FREQ4_PIN, POT_RESPONSE)};
+CS_Switch waveCtrl[] = {CS_Switch (WAVE1_PIN),    CS_Switch (WAVE2_PIN),    CS_Switch (WAVE3_PIN),    CS_Switch (WAVE4_PIN)};
 
-// Oscillator wave table numbers, waveform, and frequency ranges
+// Oscillator frequency ranges
 const double FREQ_RANGE[] = {LFO1_FREQ_MAX-LFO1_FREQ_MIN, LFO2_FREQ_MAX-LFO2_FREQ_MIN, LFO3_FREQ_MAX-LFO3_FREQ_MIN, LFO4_FREQ_MAX-LFO4_FREQ_MIN};
 const double FREQ_MIN  [] = {LFO1_FREQ_MIN, LFO2_FREQ_MIN, LFO3_FREQ_MIN, LFO4_FREQ_MIN};
 
@@ -126,7 +127,7 @@ const double FREQ_MIN  [] = {LFO1_FREQ_MIN, LFO2_FREQ_MIN, LFO3_FREQ_MIN, LFO4_F
 // 510 is divisor rather than 512 since with phase correct PWM
 // an interrupt occurs after one up/down count of the register
 // See: https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
-const double clock = 31372.549;
+const double INTERRUPT_FREQ = 31372.549;
 
 // Generic pin state variable
 byte pinState;
@@ -136,44 +137,37 @@ volatile byte tickCounter;                      // Counts interrupt "ticks". Res
 volatile byte fourMilliCounter;                 // Counter incremented every 4ms
 
 volatile unsigned long accumulator[NUM_LFO];    // Counter accumulator for LFOs
-volatile unsigned long tuningWord[NUM_LFO];     // Wavetable tuning word
+unsigned long tuningWord[NUM_LFO];              // Wavetable tuning word
 
 // Pointers to LFO wavetables
-volatile byte *waveform[4];
-byte waveNum[] = {0, 1, 2, 3};
+byte waveNum[] = {0, 0, 0, 0};
+byte *waveform[NUM_LFO];
 
 // Sync variables
 #if defined(SYNC)
   const byte SYNC_PIN[] = {SYNC1_PIN, SYNC2_PIN, SYNC3_PIN, SYNC4_PIN};
-  byte lastSync[4];
+  byte lastSync[NUM_LFO];
 #endif
-
 
 void setup()
 {
+  Serial.begin(9600);
 
+  // DISPLAY
 #if defined(DISPLAY)
-  // Initialize display
   displaySurface.begin();
 #endif
 
-  // Initialize Frequency Controls and PWM pins
+  // Initialize PWM pin, LFO waveform, frequency control, wave selector input, and tuning word
   for (byte i=0; i<NUM_LFO; i+=1) {
-    freqCtrl[i].begin();
     pinMode (LFO_PIN[i], OUTPUT);
-  }
-  
-  // Initialize wave tables
-  for (byte i=0; i<NUM_LFO; i+=1) {
     waveform[i] = (byte*)waveTable[waveNum[i]];
+    freqCtrl[i].begin();
+    while (waveCtrl[i].stateDebounced() == 0);
+    tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / INTERRUPT_FREQ);
   }
   
-  // Initialize wave switch states
-  for (byte i=0; i<NUM_LFO; i+=1) {
-    while (waveCtrl[i].stateDebounced() == 0);
-  }
-
-  // Initialize sync pins
+  // Initialize sync pins (optional)
 #if defined(SYNC)
   for (byte i=0; i<NUM_LFO; i+=1) {
     pinMode (SYNC_PIN[i], INPUT);
@@ -181,7 +175,7 @@ void setup()
   };  
 #endif
 
-  // Setup PWM and Interrupt
+  // Setup PWM mode and Interrupt
   PWM_Setup();
 
 }
@@ -214,23 +208,23 @@ void loop()
 
     // Update LFOs
     for (byte i=0; i<NUM_LFO; i+=1) {
+      
       // WAVEFORM
       pinState = waveCtrl[i].stateDebounced();
       if (waveCtrl[i].changed()) {
         if (pinState == 1) {
+          Serial.println(waveNum[i]);
           waveNum[i]  = (waveNum[i] + 1) % NUM_WAVES;
           waveform[i] = (byte*)waveTable[waveNum[i]];
         }
       }
+      
       // FREQUENCY
-//      tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / clock);
-      tuningWord[i] = POW2TO32 * (((((double)500.0 * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / clock);
+      tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / INTERRUPT_FREQ);
     }
-
-    // FREQUENCY
   }
-
 }
+
 
 //******************************************************************
 // PWM setup
@@ -286,25 +280,16 @@ void PWM_Setup() {
 //
 ISR(TIMER2_OVF_vect) {
 
-//  byte offset;
-  byte sample[NUM_LFO];
-
   // Count every four milliseconds
   if (tickCounter++ == 125) {
     fourMilliCounter++;
     tickCounter = 0;
   }
 
-  // Update wave samples
+  // Update PWM registers for each wave
   for (byte i=0; i<NUM_LFO; i+=1) {
-    accumulator[i]  +=  tuningWord[i];
-    sample[i]        =  pgm_read_byte_near(waveform[i] + (accumulator[i] >> 24));
+    accumulator[i] += tuningWord[i];
+    *PWM_REG[i] = pgm_read_byte_near(waveform[i] + (accumulator[i] >> 24));
   }
-  
-  // Update PWM values
-  OCR2A = sample[0];
-  OCR2B = sample[1];
-  OCR0A = sample[2];
-  OCR0B = sample[3];
 
 }

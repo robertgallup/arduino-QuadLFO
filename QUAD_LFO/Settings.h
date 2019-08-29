@@ -8,6 +8,9 @@
 // Uncomment the following line to support a user-supplied display
 //#define DISPLAY
 
+// FREQ RESPONSE (responsiveness of frequency POT. 1-4 with 4 being less responsive but more stable
+const byte POT_RESPONSE =         2;
+
 // FREQUENCY (analog pins)
 
 const byte FREQ1_PIN =            0;
