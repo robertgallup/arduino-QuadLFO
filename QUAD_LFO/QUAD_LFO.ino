@@ -71,7 +71,7 @@
 //
 
 // Macros for clearing and setting bits
-#define   setBit(addr, bit) (_SFR_BYTE(addr) |= _BV(bit))
+#define   setBit(addr, bit) (_SFR_BYTE(addr) |=  _BV(bit))
 #define clearBit(addr, bit) (_SFR_BYTE(addr) &= ~_BV(bit))
 
 // Used in calculating frequency tuning word
@@ -132,15 +132,15 @@ const double clock = 31372.549;
 byte pinState;
 
 // Interrupt variables (volatile)
-volatile byte tickCounter;               // Counts interrupt "ticks". Reset every 125
-volatile byte fourMilliCounter;          // Counter incremented every 4ms
+volatile byte tickCounter;                      // Counts interrupt "ticks". Reset every 125
+volatile byte fourMilliCounter;                 // Counter incremented every 4ms
 
-volatile unsigned long accumulator[4];    // Counter accumulator for LFOs
-volatile unsigned long tuningWord[4];     // Wavetable tuning word
+volatile unsigned long accumulator[NUM_LFO];    // Counter accumulator for LFOs
+volatile unsigned long tuningWord[NUM_LFO];     // Wavetable tuning word
 
 // Pointers to LFO wavetables
 volatile byte *waveform[4];
-byte waveNum[] = {0, 0, 0, 0,};
+byte waveNum[] = {0, 1, 2, 3};
 
 // Sync variables
 #if defined(SYNC)
@@ -165,7 +165,7 @@ void setup()
   
   // Initialize wave tables
   for (byte i=0; i<NUM_LFO; i+=1) {
-    waveform[i] = (byte*)waveTable[0];
+    waveform[i] = (byte*)waveTable[waveNum[i]];
   }
   
   // Initialize wave switch states
@@ -213,7 +213,7 @@ void loop()
 #endif
 
     // Update LFOs
-    for (byte i=0; i<=NUM_LFO; i+=1) {
+    for (byte i=0; i<NUM_LFO; i+=1) {
       // WAVEFORM
       pinState = waveCtrl[i].stateDebounced();
       if (waveCtrl[i].changed()) {
@@ -223,7 +223,8 @@ void loop()
         }
       }
       // FREQUENCY
-      tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / clock);
+//      tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / clock);
+      tuningWord[i] = POW2TO32 * (((((double)500.0 * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / clock);
     }
 
     // FREQUENCY
@@ -280,12 +281,13 @@ void PWM_Setup() {
 
 ////////////////////////////////////////////////////////////////
 //
-// Timer2 Interrupt Service
+// Interrupt Service (TIMER 2)
 // Frequency = 16,000,000 / 510 = 31372.5
 //
 ISR(TIMER2_OVF_vect) {
 
-  byte offset;
+//  byte offset;
+  byte sample[NUM_LFO];
 
   // Count every four milliseconds
   if (tickCounter++ == 125) {
@@ -296,21 +298,13 @@ ISR(TIMER2_OVF_vect) {
   // Update wave samples
   for (byte i=0; i<NUM_LFO; i+=1) {
     accumulator[i]  +=  tuningWord[i];
-    offset          =   accumulator[i] >> 24; // high order byte
-    byte sample     =   pgm_read_byte_near(waveform[i] + offset);
-  
-    switch (i) {
-      case 0:
-        OCR2A = sample;
-        break;
-      case 1:
-        OCR2B = sample;
-        break;
-      case 2:
-        OCR0A = sample;
-        break;
-      case 3:
-        OCR0B = sample;
-    }
+    sample[i]        =  pgm_read_byte_near(waveform[i] + (accumulator[i] >> 24));
   }
+  
+  // Update PWM values
+  OCR2A = sample[0];
+  OCR2B = sample[1];
+  OCR0A = sample[2];
+  OCR0B = sample[3];
+
 }

@@ -30,7 +30,7 @@ const byte SYNC1_PIN =            9;
 const byte SYNC2_PIN =           10;
 const byte SYNC3_PIN =           12;
 const byte SYNC4_PIN =           13;
-const byte SYNC_TRIGGER =                 HIGH;
+const byte SYNC_TRIGGER =      HIGH;
 #endif
 
 // LFO FREQUENCY SETTINGS
