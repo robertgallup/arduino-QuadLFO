@@ -5,9 +5,9 @@ ArduinoQuadLFO uses PWM, interrupts and simple low-pass filters on output pins t
 ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins (see pin map in source code):
 
 1. One PWM pin for output connected to a simple lowpass filter (see below)
-2. One potentiometer to affect frequency
+2. One potentiometer to adjust frequency
 3. One switch to increment through waveforms
-4. One floating digital input pin to restart the LFO (can be active HIGH or LOW)
+4. One floating digital input pin to restart the LFO (Optional. Can be active HIGH or LOW)
 
 ```
                1K
