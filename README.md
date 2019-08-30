@@ -2,7 +2,7 @@
 
 ArduinoQuadLFO uses PWM, interrupts and simple low-pass filters on output pins to create four simultaneous waveforms from an Arduino.
 
-ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins:
+ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins (see pin map in source code):
 
 1. One PWM pin for output connected to a simple lowpass filter (see below)
 2. One potentiometer to affect frequency
