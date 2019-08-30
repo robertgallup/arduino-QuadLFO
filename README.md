@@ -10,6 +10,9 @@ ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins (
 4. One floating digital input pin to restart the LFO (Optional. Can be active HIGH or LOW)
 
 ```
+Lowpass Filter for PWM Pins:
+
+
                1K
             Resistor
 PWM PIN> ----/\/\/\--•------------  (LFO Output)
