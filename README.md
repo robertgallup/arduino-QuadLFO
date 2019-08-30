@@ -1,5 +1,4 @@
 # ArduinoDualLFO
----
 
 ArduinoQuadLFO uses PWM, interrupts and simple low-pass filters on output pins to create four simultaneous waveforms from an Arduino.
 
@@ -11,17 +10,17 @@ ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins:
 4. One floating digital input pin to restart the LFO (can be active HIGH or LOW)
 
 ```
-		       1K
-		    Resistor
+               1K
+            Resistor
 PWM PIN> ----/\/\/\--•------------  (LFO Output)
-               		 |
-               		 |
-              		---  100nf
-              		---  capacitor
-               		 |
-               		 |
+                     |
+                     |
+                    ---  100nf
+                    ---  capacitor
+                     |
+                     |
 
-              		GND
+                    GND
 ```
 
 The Arduino sketch is in the Quad_LFO folder. You can copy it to your Arduino Sketches folder. Or,
