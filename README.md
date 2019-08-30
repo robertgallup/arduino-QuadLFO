@@ -3,15 +3,26 @@
 
 ArduinoQuadLFO uses PWM, interrupts and simple low-pass filters on output pins to create four simultaneous waveforms from an Arduino.
 
-## Description
-
 ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins:
 
-2. One potentiometer and a switch for each LFO (frequency, depth, waveform)
-4. Floating input pin for the trigger input (the default state is determined on startup. Trigger is activated when the state changes)
+1. One PWM pin for output connected to a simple lowpass filter (see below)
+2. One potentiometer to affect frequency
+3. One switch to increment through waveforms
+4. One floating digital input pin to restart the LFO (can be active HIGH or LOW)
 
-For more information on the physical connections, see the Fritzing files. I've included the native Fritzing file (Arduino Dual LFO.fzz) as well
-as PDF copies of the schematic and breadboard layout.
+```
+		       1K
+		    Resistor
+PWM PIN> ----/\/\/\--•------------  (LFO Output)
+               		 |
+               		 |
+              		---  100nf
+              		---  capacitor
+               		 |
+               		 |
+
+              		GND
+```
 
 The Arduino sketch is in the Quad_LFO folder. You can copy it to your Arduino Sketches folder. Or,
 you can open the sketch directly from the Arduino IDE using File > Open...

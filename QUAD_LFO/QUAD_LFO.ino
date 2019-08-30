@@ -151,7 +151,6 @@ byte *waveform[NUM_LFO];
 
 void setup()
 {
-  Serial.begin(9600);
 
   // DISPLAY
 #if defined(DISPLAY)
@@ -175,16 +174,15 @@ void setup()
   };  
 #endif
 
-  // Setup PWM mode and Interrupt
+  // PWM mode and Interrupt
   PWM_Setup();
 
 }
 
-
 void loop()
 {
 
-  // SYNC
+  // SYNC (Optional)
 #if defined(SYNC)
   for (byte i=0; i<NUM_LFO; i+=1) {
     pinState = digitalRead(SYNC_PIN[i]);
@@ -197,23 +195,22 @@ void loop()
   }
 #endif
 
-  // Check other controls and update display every 1/10 second
+  // Check controls and update display every 1/10 second
   if (fourMilliCounter > 25) {
     fourMilliCounter = 0;
 
-    // If DISPLAY defined in Settings.h
+    // DISPLAY (Optional)
 #if defined(DISPLAY)
     displaySurface.update();
 #endif
 
-    // Update LFOs
+    // Iterate through the LFOs
     for (byte i=0; i<NUM_LFO; i+=1) {
       
       // WAVEFORM
       pinState = waveCtrl[i].stateDebounced();
       if (waveCtrl[i].changed()) {
         if (pinState == 1) {
-          Serial.println(waveNum[i]);
           waveNum[i]  = (waveNum[i] + 1) % NUM_WAVES;
           waveform[i] = (byte*)waveTable[waveNum[i]];
         }
