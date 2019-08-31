@@ -1,9 +1,4 @@
-// Settings 
-
-// Comment out the following #define to deactivate SYNC input(s)
-// Specify whether HIGH or LOW is the trigger state using "TRIGGER" constants
-// To use a common pin for syncing both LFOs, define SYNC_COMMON (uncomment the #define)
-// The common pin/trigger are taken from SYNC1
+// SETTINGS
 
 // Uncomment the following line to support a user-supplied display
 //#define DISPLAY
@@ -33,10 +28,10 @@ const byte SYNC1_PIN =            9;
 const byte SYNC2_PIN =           10;
 const byte SYNC3_PIN =           12;
 const byte SYNC4_PIN =           13;
-const byte SYNC_TRIGGER =      HIGH;
+const byte SYNC_TRIGGER =      HIGH;     // for setting active HIGH or LOW sync
 #endif
 
-// LFO FREQUENCY SETTINGS
+// LFO FREQUENCY RANGE
 const double LFO1_FREQ_MIN =      0.1;
 const double LFO1_FREQ_MAX =      100;
 
