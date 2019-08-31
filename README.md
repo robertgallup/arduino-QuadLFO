@@ -1,35 +1,59 @@
-# ArduinoDualLFO
+# ArduinoQuadLFO
 
 ArduinoQuadLFO uses PWM, interrupts and simple low-pass filters on output pins to create four simultaneous waveforms from an Arduino.
 
 ArduinoQuadLFO assumes that you have certain hardware hooked up to Arduio pins (see pin map in source code):
 
-1. One PWM pin for output connected to a simple lowpass filter (see below)
+1. One PWM pin for output connected to a simple lowpass filter
 2. One potentiometer to adjust frequency
 3. One switch to increment through waveforms
 4. One floating digital input pin to restart the LFO (Optional. Can be active HIGH or LOW)
 
+Additional Notes:
+
+* The Arduino sketch is in the Quad_LFO folder. You can copy it to your Arduino Sketches folder. Or,
+you can open the sketch directly from the Arduino IDE using **File > Open...**
+* Also included is an Excel worksheet to calculate waveforms used. Sample data is copied from the worksheet to a sketch header file. You can create your own tabs and functions in the worksheet to create your own waveforms.
+
+## Hardware Connections
+**Lowpass Filter for PWM Output Pins:**
+
 ```
-Lowpass Filter for PWM Pins:
-
-
                1K
             Resistor
-PWM PIN> ----/\/\/\--•------------  (LFO Output)
-                     |
-                     |
-                    ---  100nf
-                    ---  capacitor
-                     |
-                     |
+PWM PIN > ----/\/\/\--•------------  (LFO Output)
+                      |
+                      |
+                     ---  100nf
+                     ---  capacitor
+                      |
+                      |
+                     GND
 
-                    GND
+
 ```
 
-The Arduino sketch is in the Quad_LFO folder. You can copy it to your Arduino Sketches folder. Or,
-you can open the sketch directly from the Arduino IDE using File > Open...
+**Frequency Potentiometer:**
 
-Also included is an Excel worksheet that calculates the various waveforms used in the LFOs. Sample data is copied
-from the worksheet by selecting the relevant column and copy/pasting it to a sketch header (with variable definition
-before and after the data -- see the other wave headers for reference). You can use the worksheet to calculate and add your own waveforms.
+```
+                     5V
+                     |
+                    _|_
+                   |   |
+ANALOG IN <------- |   |  POT
+                   |   |
+                    ---
+                     |
+                     |
+                    GND
+                    
 
+```
+**Waveform Selector Button:**
+
+```
+                    /
+DIGITAL IN <------ /    ------ GND
+                    
+
+```
