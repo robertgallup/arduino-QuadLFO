@@ -157,23 +157,24 @@ void setup()
   displaySurface.begin();
 #endif
 
-  // Initialize PWM pin, LFO waveform, frequency control, wave selector input, and tuning word
+  // For each oscillator, initialize PWM pin, LFO waveform, frequency control, wave selector, and SYNC (optional)
   for (byte i=0; i<NUM_LFO; i+=1) {
-    pinMode (LFO_PIN[i], OUTPUT);
-    waveform[i] = (byte*)waveTable[waveNum[i]];
-    freqCtrl[i].begin();
+    // Wave selector
     while (waveCtrl[i].stateDebounced() == 0);
+    // Waveform Data
+    waveform[i] = (byte*)waveTable[waveNum[i]];
+    // PWM Pin
+    pinMode (LFO_PIN[i], OUTPUT);
+    // Frequency control
+    freqCtrl[i].begin();
     tuningWord[i] = POW2TO32 * (((((double)freqCtrl[i].value() * FREQ_RANGE[i]) / 1023L) + FREQ_MIN[i]) / INTERRUPT_FREQ);
-  }
-  
-  // Initialize sync pins (optional)
+    // SYNC input
 #if defined(SYNC)
-  for (byte i=0; i<NUM_LFO; i+=1) {
     pinMode (SYNC_PIN[i], INPUT);
     lastSync[i] = digitalRead(SYNC_PIN[i]);
-  };  
 #endif
-
+  }
+  
   // PWM mode and Interrupt
   PWM_Setup();
 
