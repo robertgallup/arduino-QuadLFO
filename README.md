@@ -40,7 +40,7 @@ PWM PIN > ----/\/\/\--•------------  (LFO Output)
                      |
                     _|_
                    |   |
-ANALOG IN <------- |   |  POT
+ANALOG IN <------- |   |  POT (10K)
                    |   |
                     ---
                      |
@@ -49,7 +49,7 @@ ANALOG IN <------- |   |  POT
                     
 
 ```
-**Waveform Selector Button:**
+**Waveform Selector Button (Tact Switch):**
 
 ```
                     /
