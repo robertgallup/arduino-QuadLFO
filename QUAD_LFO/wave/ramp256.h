@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////
 //
-// Positive 256-byte Sawtooth Wave
+// Positive 256-byte Ramp Wave
 //
 //  The MIT License (MIT)
 //  

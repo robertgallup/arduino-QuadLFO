@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////
 //
-//  256-byte Pulse Wave (64-byte pulse)
+//  256-byte Pulse Wave (64 sample pulse width)
 //
 //  The MIT License (MIT)
 //  
