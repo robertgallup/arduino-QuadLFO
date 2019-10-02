@@ -52,8 +52,9 @@ ANALOG IN <------- |   |  POT (10K)
 **Waveform Selector Button (Tact Switch):**
 
 ```
-                    /
-DIGITAL IN <------ /    ------ GND
+                    |
+                  -----
+DIGITAL IN <------    ------ GND
                     
 
 ```

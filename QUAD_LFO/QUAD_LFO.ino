@@ -120,8 +120,8 @@ CS_Pot    freqCtrl[] = {CS_Pot    (FREQ1_PIN, POT_RESPONSE), CS_Pot    (FREQ2_PI
 CS_Switch waveCtrl[] = {CS_Switch (WAVE1_PIN),    CS_Switch (WAVE2_PIN),    CS_Switch (WAVE3_PIN),    CS_Switch (WAVE4_PIN)};
 
 // Oscillator frequency ranges
-const double FREQ_RANGE[] = {LFO1_FREQ_MAX-LFO1_FREQ_MIN, LFO2_FREQ_MAX-LFO2_FREQ_MIN, LFO3_FREQ_MAX-LFO3_FREQ_MIN, LFO4_FREQ_MAX-LFO4_FREQ_MIN};
-const double FREQ_MIN  [] = {LFO1_FREQ_MIN, LFO2_FREQ_MIN, LFO3_FREQ_MIN, LFO4_FREQ_MIN};
+const unsigned int FREQ_RANGE[] = {LFO1_FREQ_MAX-LFO1_FREQ_MIN, LFO2_FREQ_MAX-LFO2_FREQ_MIN, LFO3_FREQ_MAX-LFO3_FREQ_MIN, LFO4_FREQ_MAX-LFO4_FREQ_MIN};
+const unsigned int FREQ_MIN  [] = {LFO1_FREQ_MIN, LFO2_FREQ_MIN, LFO3_FREQ_MIN, LFO4_FREQ_MIN};
 
 // Set interrupt frequency (16,000,000 / 510)
 // 510 is divisor rather than 512 since with phase correct PWM
@@ -137,7 +137,7 @@ volatile byte tickCounter;                      // Counts interrupt "ticks". Res
 volatile byte fourMilliCounter;                 // Counter incremented every 4ms
 
 volatile unsigned long accumulator[NUM_LFO];    // Counter accumulator for LFOs
-unsigned long tuningWord[NUM_LFO];              // Wavetable tuning word
+volatile unsigned long tuningWord[NUM_LFO];              // Wavetable tuning word
 
 // Pointers to LFO wavetables
 byte waveNum[] = {0, 0, 0, 0};
@@ -287,7 +287,7 @@ ISR(TIMER2_OVF_vect) {
   // Update PWM registers for each wave
   for (byte i=0; i<NUM_LFO; i+=1) {
     accumulator[i] += tuningWord[i];
-    *PWM_REG[i] = pgm_read_byte_near(waveform[i] + (accumulator[i] >> 24));
+    *PWM_REG[i] = (byte)pgm_read_byte_near(waveform[i] + (accumulator[i] >> 24));
   }
 
 }
